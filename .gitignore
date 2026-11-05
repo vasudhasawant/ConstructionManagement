@@ -1,8 +1,16 @@
+# Visual Studio
 .vs/
 **/.vs/
+
+# Build folders
 bin/
 obj/
 **/bin/
 **/obj/
+
+# User settings
 *.user
 *.suo
+
+# Logs
+*.log
