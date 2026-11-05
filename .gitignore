@@ -1,1 +1,20 @@
 
+# Visual Studio
+.vs/
+**/.vs/
+
+# Build files
+bin/
+obj/
+**/bin/
+**/obj/
+
+# User settings
+*.user
+*.suo
+
+# Logs
+*.log
+
+# Secrets and local configuration
+appsettings.Development.json
