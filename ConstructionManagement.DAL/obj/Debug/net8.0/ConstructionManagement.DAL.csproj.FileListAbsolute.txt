@@ -1,0 +1,15 @@
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\bin\Debug\net8.0\ConstructionManagement.DAL.deps.json
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\bin\Debug\net8.0\ConstructionManagement.DAL.runtimeconfig.json
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\bin\Debug\net8.0\ConstructionManagement.DAL.dll
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\bin\Debug\net8.0\ConstructionManagement.DAL.pdb
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ConstructionManagement.DAL.csproj.AssemblyReference.cache
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ConstructionManagement.DAL.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ConstructionManagement.DAL.AssemblyInfoInputs.cache
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ConstructionManagement.DAL.AssemblyInfo.cs
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ConstructionManagement.DAL.csproj.CoreCompileInputs.cache
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ConstructionManagement.DAL.sourcelink.json
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ConstructionManagement.DAL.dll
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\refint\ConstructionManagement.DAL.dll
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ConstructionManagement.DAL.pdb
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ConstructionManagement.DAL.genruntimeconfig.cache
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.DAL\obj\Debug\net8.0\ref\ConstructionManagement.DAL.dll

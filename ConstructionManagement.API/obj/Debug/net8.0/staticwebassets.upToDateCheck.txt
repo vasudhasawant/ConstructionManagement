@@ -1,0 +1,10 @@
+wwwroot\uploads\attendance\1748f6a5-42b2-4b77-922d-49dba826d078.jpeg
+wwwroot\uploads\attendance\236f3d16-e97a-40b7-899f-8130637e1f2e.jpeg
+wwwroot\uploads\attendance\46793c59-f754-4343-9ec2-70633078089e.jpeg
+wwwroot\uploads\attendance\7ea73c1e-b7e1-42d1-b824-58f99003d919.jpeg
+wwwroot\uploads\attendance\823afa32-fbee-4a28-9ef1-00a5611abf54.jpeg
+wwwroot\uploads\attendance\c2177790-3725-4adb-af8f-5fdc46994991.jpeg
+wwwroot\uploads\attendance\efd6048f-9360-4386-a0be-abd77f1c90e7.jpeg
+wwwroot\uploads\attendance\f8ff32da-0633-490b-8caa-a0d7c6d190b1.jpeg
+wwwroot\uploads\deliveries\176f38d6-22b7-40c3-a297-dbd8da1ecefc.jpeg
+wwwroot\uploads\deliveries\5a446f4a-fa55-4ddd-ade5-745dd784b526.jpeg

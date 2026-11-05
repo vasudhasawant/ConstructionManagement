@@ -1,0 +1,16 @@
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\bin\Debug\net8.0\ConstructionManagement.BLL.deps.json
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\bin\Debug\net8.0\ConstructionManagement.BLL.dll
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\bin\Debug\net8.0\ConstructionManagement.BLL.pdb
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\ConstructionManagement.BLL.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\ConstructionManagement.BLL.AssemblyInfoInputs.cache
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\ConstructionManagement.BLL.AssemblyInfo.cs
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\ConstructionManagement.BLL.csproj.CoreCompileInputs.cache
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\ConstructionManagement.BLL.sourcelink.json
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\ConstructionManagement.BLL.dll
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\refint\ConstructionManagement.BLL.dll
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\ConstructionManagement.BLL.pdb
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\ref\ConstructionManagement.BLL.dll
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\bin\Debug\net8.0\ConstructionManagement.DAL.dll
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\bin\Debug\net8.0\ConstructionManagement.DAL.pdb
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\ConstructionManagement.BLL.csproj.AssemblyReference.cache
+C:\Users\vasud\source\repos\ConstructionManagement\ConstructionManagement.BLL\obj\Debug\net8.0\Construc.DE813A0F.Up2Date
