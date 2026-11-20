@@ -96,7 +96,8 @@ namespace ConstructionManagement.BLL.Services
                 Latitude = request.Latitude,
                 Longitude = request.Longitude,
                 SubmittedAt = DateTime.UtcNow,
-                Status = "PendingSupervisor"
+                StatusId = 1
+               // Status = "PendingSupervisor"
             };
 
             _context.DailyWorkSubmissions.Add(submission);
@@ -131,7 +132,8 @@ namespace ConstructionManagement.BLL.Services
                     x.WorkDescription,
                     x.Latitude,
                     x.Longitude,
-                    x.Status,
+                    x.StatusNavigation.StatusName,
+                    //x.Status,
                     x.SubmittedAt
                 })
                 .ToListAsync();
@@ -157,7 +159,8 @@ namespace ConstructionManagement.BLL.Services
                     x.WorkDescription,
                     x.Latitude,
                     x.Longitude,
-                    x.Status,
+                    //x.Status,
+                    x.StatusNavigation.StatusName,
                     x.SubmittedAt
                 })
                 .FirstOrDefaultAsync();
@@ -183,7 +186,8 @@ namespace ConstructionManagement.BLL.Services
                     x.WorkDescription,
                     x.Latitude,
                     x.Longitude,
-                    x.Status,
+                    //x.Status,
+                    x.StatusNavigation.StatusName,
                     x.SubmittedAt
                 })
                 .ToListAsync();

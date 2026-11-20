@@ -1,4 +1,5 @@
-﻿using ConstructionManagement.BLL.DTOs;
+﻿
+using ConstructionManagement.BLL.DTOs;
 using ConstructionManagement.DAL.Context;
 using ConstructionManagement.DAL.Entities;
 using Microsoft.AspNetCore.Hosting;
@@ -53,15 +54,13 @@ namespace ConstructionManagement.BLL.Services
                 throw new ArgumentException(
                     "Material demand item not found.");
 
-            if (item.Demand.Status != "Approved" &&
-                item.Demand.Status != "PartiallyDelivered")
+            if (item.Demand.StatusId != 2 &&
+                item.Demand.StatusId != 4)
             {
                 throw new InvalidOperationException(
                     "Only approved material demands can receive deliveries.");
             }
 
-            // If ApprovedQuantity is NULL, use RequestedQuantity.
-            // This supports the current approval workflow.
             decimal approvedQuantity =
                 item.ApprovedQuantity ?? item.RequestedQuantity;
 
@@ -75,7 +74,8 @@ namespace ConstructionManagement.BLL.Services
             if (request.ReceivedQuantity > remainingQuantity)
             {
                 throw new ArgumentException(
-                    $"Received quantity exceeds remaining quantity: {remainingQuantity}.");
+                    "Received quantity exceeds remaining quantity: " +
+                    remainingQuantity);
             }
 
             string? challanPath = null;
@@ -111,7 +111,6 @@ namespace ConstructionManagement.BLL.Services
 
                 _context.MaterialDeliveries.Add(delivery);
 
-                // Check delivery completion for every item
                 var demandItems = await _context.MaterialDemandItems
                     .Where(x => x.DemandId == item.DemandId)
                     .ToListAsync();
@@ -125,7 +124,6 @@ namespace ConstructionManagement.BLL.Services
                             x.DemandItemId == demandItem.DemandItemId)
                         .SumAsync(x => (decimal?)x.ReceivedQuantity) ?? 0;
 
-                    // Include the current delivery before saving
                     if (demandItem.DemandItemId == request.DemandItemId)
                     {
                         received += request.ReceivedQuantity;
@@ -142,9 +140,7 @@ namespace ConstructionManagement.BLL.Services
                     }
                 }
 
-                item.Demand.Status = allDelivered
-                    ? "Completed"
-                    : "PartiallyDelivered";
+                item.Demand.StatusId = allDelivered ? 5 : 4;
 
                 await _context.SaveChangesAsync();
 
@@ -152,7 +148,6 @@ namespace ConstructionManagement.BLL.Services
             }
             catch
             {
-                // Remove uploaded files if database save fails
                 DeleteUploadedFile(challanPath);
                 DeleteUploadedFile(invoicePath);
 
@@ -175,17 +170,13 @@ namespace ConstructionManagement.BLL.Services
             {
                 d.DeliveryId,
                 d.DemandItemId,
-
                 d.DemandItem.DemandId,
                 d.DemandItem.MaterialName,
                 d.DemandItem.Unit,
-
                 d.DemandItem.Demand.SiteId,
                 SiteName = d.DemandItem.Demand.Site.SiteName,
-
                 d.ReceivedBy,
                 ReceivedByName = d.ReceivedByNavigation.FullName,
-
                 d.ReceivedQuantity,
                 d.ChallanNumber,
                 d.ChallanPhotoPath,
@@ -216,17 +207,13 @@ namespace ConstructionManagement.BLL.Services
             {
                 d.DeliveryId,
                 d.DemandItemId,
-
                 d.DemandItem.DemandId,
                 d.DemandItem.MaterialName,
                 d.DemandItem.Unit,
-
                 d.DemandItem.Demand.SiteId,
                 SiteName = d.DemandItem.Demand.Site.SiteName,
-
                 d.ReceivedBy,
                 ReceivedByName = d.ReceivedByNavigation.FullName,
-
                 d.ReceivedQuantity,
                 d.ChallanNumber,
                 d.ChallanPhotoPath,
@@ -247,13 +234,13 @@ namespace ConstructionManagement.BLL.Services
             if (file == null || file.Length == 0)
             {
                 throw new ArgumentException(
-                    $"{fieldName} is required.");
+                    fieldName + " is required.");
             }
 
             if (file.Length > MaxFileSize)
             {
                 throw new ArgumentException(
-                    $"{fieldName} cannot exceed 5 MB.");
+                    fieldName + " cannot exceed 5 MB.");
             }
 
             var extension =
@@ -262,7 +249,7 @@ namespace ConstructionManagement.BLL.Services
             if (!AllowedExtensions.Contains(extension))
             {
                 throw new ArgumentException(
-                    $"{fieldName} must be JPG, JPEG, PNG or WEBP.");
+                    fieldName + " must be JPG, JPEG, PNG or WEBP.");
             }
 
             if (file.ContentType == null ||
@@ -270,7 +257,7 @@ namespace ConstructionManagement.BLL.Services
                     "image/", StringComparison.OrdinalIgnoreCase))
             {
                 throw new ArgumentException(
-                    $"{fieldName} must be an image.");
+                    fieldName + " must be an image.");
             }
         }
 
@@ -289,7 +276,7 @@ namespace ConstructionManagement.BLL.Services
             var extension =
                 Path.GetExtension(file.FileName).ToLowerInvariant();
 
-            var fileName = $"{Guid.NewGuid()}{extension}";
+            var fileName = Guid.NewGuid() + extension;
 
             var fullPath = Path.Combine(uploadFolder, fileName);
 
@@ -299,7 +286,7 @@ namespace ConstructionManagement.BLL.Services
                 await file.CopyToAsync(stream);
             }
 
-            return $"/uploads/deliveries/{fileName}";
+            return "/uploads/deliveries/" + fileName;
         }
 
         // DELETE UPLOADED FILE ON FAILURE

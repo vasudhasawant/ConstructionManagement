@@ -15,7 +15,9 @@ public partial class MaterialDemand
 
     public DateOnly? RequiredDate { get; set; }
 
-    public string Status { get; set; } = null!;
+    //public string Status { get; set; } = null!;
+
+    public int StatusId { get; set; }
 
     public string? Remarks { get; set; }
 
@@ -24,4 +26,6 @@ public partial class MaterialDemand
     public virtual User RequestedByNavigation { get; set; } = null!;
 
     public virtual ConstructionSite Site { get; set; } = null!;
+
+    public virtual MaterialDemandStatusMaster StatusNavigation { get; set; } = null!;
 }

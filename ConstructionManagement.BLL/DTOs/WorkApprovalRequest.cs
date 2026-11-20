@@ -11,5 +11,7 @@ namespace ConstructionManagement.BLL.DTOs
         public string Decision { get; set; } = string.Empty;
 
         public string? Remarks { get; set; }
+        public int? VerifiedLabourCount { get; set; }
+
     }
 }

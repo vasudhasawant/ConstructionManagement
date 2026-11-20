@@ -9,6 +9,7 @@ namespace ConstructionManagement.BLL.DTOs
         public int ContractorId { get; set; }
 
         public DateOnly WorkDate { get; set; }
+
         public IFormFile? AttendanceSelfie { get; set; }
 
         public IFormFile? WorkPhoto { get; set; }
@@ -17,8 +18,8 @@ namespace ConstructionManagement.BLL.DTOs
 
         public string WorkDescription { get; set; } = string.Empty;
 
-        public decimal? Latitude { get; set; }
+        public string? Latitude { get; set; }
 
-        public decimal? Longitude { get; set; }
+        public string? Longitude { get; set; }
     }
 }

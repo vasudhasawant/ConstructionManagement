@@ -1,4 +1,5 @@
-﻿using ConstructionManagement.BLL.DTOs;
+﻿
+using ConstructionManagement.BLL.DTOs;
 using ConstructionManagement.DAL.Context;
 using ConstructionManagement.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +45,7 @@ namespace ConstructionManagement.BLL.Services
                 RequestedBy = requestedBy,
                 DemandDate = DateTime.UtcNow,
                 RequiredDate = request.RequiredDate,
-                Status = "Pending",
+                StatusId = 1,
                 Remarks = request.Remarks
             };
 
@@ -65,13 +66,13 @@ namespace ConstructionManagement.BLL.Services
             return demand.DemandId;
         }
 
-
         // Get All Material Demands
         public async Task<List<object>> GetAllDemandsAsync()
         {
             var demands = await _context.MaterialDemands
                 .Include(x => x.Site)
                 .Include(x => x.RequestedByNavigation)
+                .Include(x => x.StatusNavigation)
                 .Include(x => x.MaterialDemandItems)
                 .OrderByDescending(x => x.DemandDate)
                 .ToListAsync();
@@ -85,7 +86,8 @@ namespace ConstructionManagement.BLL.Services
                 RequestedByName = d.RequestedByNavigation.FullName,
                 d.DemandDate,
                 d.RequiredDate,
-                d.Status,
+                d.StatusId,
+                Status = d.StatusNavigation.StatusName,
                 d.Remarks,
 
                 Items = d.MaterialDemandItems.Select(i => new
@@ -106,6 +108,7 @@ namespace ConstructionManagement.BLL.Services
             var demand = await _context.MaterialDemands
                 .Include(x => x.Site)
                 .Include(x => x.RequestedByNavigation)
+                .Include(x => x.StatusNavigation)
                 .Include(x => x.MaterialDemandItems)
                 .FirstOrDefaultAsync(x => x.DemandId == demandId);
 
@@ -121,7 +124,8 @@ namespace ConstructionManagement.BLL.Services
                 RequestedByName = demand.RequestedByNavigation.FullName,
                 demand.DemandDate,
                 demand.RequiredDate,
-                demand.Status,
+                demand.StatusId,
+                Status = demand.StatusNavigation.StatusName,
                 demand.Remarks,
 
                 Items = demand.MaterialDemandItems.Select(i => new
@@ -137,16 +141,15 @@ namespace ConstructionManagement.BLL.Services
         }
 
         // Update Material Demand Status
-
         public async Task<bool> UpdateDemandStatusAsync(
             long demandId,
             UpdateMaterialDemandStatusRequest request)
         {
             var allowedStatuses = new[]
             {
-        "Approved",
-        "Rejected"
-    };
+                "Approved",
+                "Rejected"
+            };
 
             if (!allowedStatuses.Contains(request.Status))
             {
@@ -161,7 +164,7 @@ namespace ConstructionManagement.BLL.Services
             if (demand == null)
                 return false;
 
-            if (demand.Status != "Pending")
+            if (demand.StatusId != 1)
             {
                 throw new InvalidOperationException(
                     "Only pending demands can be approved or rejected.");
@@ -191,7 +194,8 @@ namespace ConstructionManagement.BLL.Services
                     if (demandItem == null)
                     {
                         throw new ArgumentException(
-                            $"Invalid material demand item ID: {itemRequest.DemandItemId}");
+                            "Invalid material demand item ID: " +
+                            itemRequest.DemandItemId);
                     }
 
                     if (itemRequest.ApprovedQuantity <= 0)
@@ -203,7 +207,8 @@ namespace ConstructionManagement.BLL.Services
                     if (itemRequest.ApprovedQuantity > demandItem.RequestedQuantity)
                     {
                         throw new ArgumentException(
-                            $"Approved quantity cannot exceed requested quantity for {demandItem.MaterialName}.");
+                            "Approved quantity cannot exceed requested quantity for " +
+                            demandItem.MaterialName + ".");
                     }
 
                     demandItem.ApprovedQuantity =
@@ -211,7 +216,8 @@ namespace ConstructionManagement.BLL.Services
                 }
             }
 
-            demand.Status = request.Status;
+            demand.StatusId =
+                request.Status == "Approved" ? 2 : 3;
 
             if (!string.IsNullOrWhiteSpace(request.Remarks))
             {
@@ -222,6 +228,5 @@ namespace ConstructionManagement.BLL.Services
 
             return true;
         }
-
     }
 }

@@ -14,7 +14,6 @@ namespace ConstructionManagement.BLL.Services
             _context = context;
         }
 
-        // Get sites accessible to the logged-in user
         private async Task<List<int>> GetAccessibleSiteIdsAsync(
             int userId, string role)
         {
@@ -34,15 +33,18 @@ namespace ConstructionManagement.BLL.Services
                     .ToListAsync();
             }
 
-            return await _context.SiteUserAccesses
-                .Where(x => x.UserId == userId &&
-                            x.Site.IsActive)
-                .Select(x => x.SiteId)
-                .Distinct()
-                .ToListAsync();
+            if (role == "Contractor")
+            {
+                return await _context.DailyWorkSubmissions
+                    .Where(x => x.Contractor.UserId == userId)
+                    .Select(x => x.SiteId)
+                    .Distinct()
+                    .ToListAsync();
+            }
+
+            return new List<int>();
         }
 
-        // 1. Dashboard Summary
         public async Task<DashboardSummaryResponse> GetDashboardSummaryAsync(
             int userId, string role)
         {
@@ -52,9 +54,9 @@ namespace ConstructionManagement.BLL.Services
 
             var totalContractors = await _context.Contractors
                 .Where(c => c.IsActive &&
-                    _context.SiteUserAccesses.Any(a =>
-                        a.UserId == c.UserId &&
-                        siteIds.Contains(a.SiteId)))
+                    _context.DailyWorkSubmissions.Any(s =>
+                        s.ContractorId == c.ContractorId &&
+                        siteIds.Contains(s.SiteId)))
                 .Select(c => c.ContractorId)
                 .Distinct()
                 .CountAsync();
@@ -67,8 +69,7 @@ namespace ConstructionManagement.BLL.Services
             var pendingApprovals = await _context.DailyWorkSubmissions
                 .CountAsync(x =>
                     siteIds.Contains(x.SiteId) &&
-                    (x.Status == "PendingSupervisor" ||
-                     x.Status == "PendingBuilder"));
+                    (x.StatusId == 1 || x.StatusId == 2));
 
             var totalDemands = await _context.MaterialDemands
                 .CountAsync(x => siteIds.Contains(x.SiteId));
@@ -76,7 +77,7 @@ namespace ConstructionManagement.BLL.Services
             var pendingDemands = await _context.MaterialDemands
                 .CountAsync(x =>
                     siteIds.Contains(x.SiteId) &&
-                    x.Status == "Pending");
+                    x.StatusId == 1);
 
             var totalAmount = await _context.MaterialDeliveries
                 .Where(x =>
@@ -94,7 +95,6 @@ namespace ConstructionManagement.BLL.Services
             };
         }
 
-        // 2. Attendance Report
         public async Task<List<AttendanceReportResponse>>
             GetAttendanceReportAsync(
                 int userId,
@@ -126,7 +126,7 @@ namespace ConstructionManagement.BLL.Services
                     WorkDate = submission.WorkDate,
                     DeclaredLabourCount = submission.DeclaredLabourCount,
                     VerifiedLabourCount = submission.VerifiedLabourCount,
-                    Status = submission.Status,
+                    Status = submission.StatusNavigation.StatusName,
                     WorkDescription = submission.WorkDescription
                 };
 
@@ -141,7 +141,6 @@ namespace ConstructionManagement.BLL.Services
                 .ToListAsync();
         }
 
-        // 3. Material Report
         public async Task<List<MaterialReportResponse>>
             GetMaterialReportAsync(
                 int userId,
@@ -168,7 +167,7 @@ namespace ConstructionManagement.BLL.Services
                         x.MaterialDeliveries.Sum(d =>
                             (decimal?)d.ReceivedQuantity) ?? 0,
                     Unit = x.Unit,
-                    DemandStatus = x.Demand.Status,
+                    DemandStatus = x.Demand.StatusNavigation.StatusName,
                     TotalAmount =
                         x.MaterialDeliveries.Sum(d =>
                             d.TotalAmount) ?? 0

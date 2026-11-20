@@ -9,7 +9,8 @@ public partial class WorkApproval
 
     public long SubmissionId { get; set; }
 
-    public int ApproverId { get; set; }
+    public int ApprovalBy { get; set; }
+
 
     public int ApprovalLevel { get; set; }
 
@@ -19,7 +20,8 @@ public partial class WorkApproval
 
     public DateTime DecisionAt { get; set; }
 
-    public virtual User Approver { get; set; } = null!;
 
     public virtual DailyWorkSubmission Submission { get; set; } = null!;
+    public virtual User ApprovalByNavigation { get; set; } = null!;
+   
 }

@@ -23,13 +23,15 @@ public partial class DailyWorkSubmission
 
     public string? WorkDescription { get; set; }
 
-    public decimal? Latitude { get; set; }
+    public string? Latitude { get; set; }
 
-    public decimal? Longitude { get; set; }
+    public string? Longitude { get; set; }
 
     public DateTime SubmittedAt { get; set; }
 
-    public string Status { get; set; } = null!;
+    public int StatusId { get; set; }
+
+    public virtual WorkSubmissionStatusMaster StatusNavigation { get; set; } = null!;
 
     public virtual Contractor Contractor { get; set; } = null!;
 

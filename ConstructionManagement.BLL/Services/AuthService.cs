@@ -29,10 +29,12 @@ public class AuthService
 
     public async Task<LoginResponse?> LoginAsync(LoginRequest request)
     {
+        
         var user = await _db.Users
-            .FirstOrDefaultAsync(u =>
-                u.Phone == request.Phone && u.IsActive);
-
+       .FirstOrDefaultAsync(u =>
+           u.Phone == request.Phone &&
+           u.StatusId == 1 &&
+           u.IsActive);
         if (user == null)
             return null;
 
@@ -114,6 +116,7 @@ public class AuthService
             Phone = request.Phone,
             Email = request.Email,
             Role = request.Role,
+            StatusId = 1, // Active
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };

@@ -27,5 +27,4 @@ public partial class ConstructionSite
 
     public virtual ICollection<MaterialDemand> MaterialDemands { get; set; } = new List<MaterialDemand>();
 
-    public virtual ICollection<SiteUserAccess> SiteUserAccesses { get; set; } = new List<SiteUserAccess>();
 }

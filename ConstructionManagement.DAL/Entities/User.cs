@@ -7,6 +7,7 @@ public partial class User
 {
     public int UserId { get; set; }
 
+    public int StatusId { get; set; }
     public string FullName { get; set; } = null!;
 
     public string Phone { get; set; } = null!;
@@ -31,9 +32,6 @@ public partial class User
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
-    public virtual ICollection<SiteUserAccess> SiteUserAccessAssignedByNavigations { get; set; } = new List<SiteUserAccess>();
-
-    public virtual ICollection<SiteUserAccess> SiteUserAccessUsers { get; set; } = new List<SiteUserAccess>();
 
     public virtual ICollection<WorkApproval> WorkApprovals { get; set; } = new List<WorkApproval>();
 }

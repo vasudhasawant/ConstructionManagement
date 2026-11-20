@@ -55,6 +55,23 @@ namespace ConstructionManagement.BLL.Services
             }
 
             // Level 2 can proceed only after Level 1 approval
+            if (approvalLevel == 1 && request.Decision == "Approved")
+            {
+                if (request.VerifiedLabourCount == null)
+                {
+                    throw new ArgumentException(
+                        "Verified labour count is required for supervisor approval.");
+                }
+
+                if (request.VerifiedLabourCount < 0)
+                {
+                    throw new ArgumentException(
+                        "Verified labour count cannot be negative.");
+                }
+
+                submission.VerifiedLabourCount = request.VerifiedLabourCount;
+            }
+
             if (approvalLevel == 2)
             {
                 var supervisorApproved = await _context.WorkApprovals
@@ -74,7 +91,7 @@ namespace ConstructionManagement.BLL.Services
             var approval = new WorkApproval
             {
                 SubmissionId = submissionId,
-                ApproverId = approverId,
+                ApprovalBy = approverId,
                 ApprovalLevel = approvalLevel,
                 Decision = request.Decision,
                 Remarks = request.Remarks,
@@ -86,15 +103,21 @@ namespace ConstructionManagement.BLL.Services
             // Update submission status
             if (request.Decision == "Rejected")
             {
-                submission.Status = "Rejected";
+                submission.StatusId = 4; // Rejected
+
+                //submission.Status = "Rejected";
             }
             else if (approvalLevel == 1)
             {
-                submission.Status = "PendingBuilder";
+                submission.StatusId = 2; // PendingBuilder
+
+                // submission.Status = "PendingBuilder";
             }
             else
             {
-                submission.Status = "Approved";
+                submission.StatusId = 3; // Approved
+
+                 //   submission.Status = "Approved";
             }
 
             await _context.SaveChangesAsync();

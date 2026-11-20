@@ -18,11 +18,13 @@ namespace ConstructionManagement.BLL.Services
             CreateContractorRequest request)
         {
             // Check whether user exists and is active
-            var user = await _context.Users
-                .FirstOrDefaultAsync(x =>
-                    x.UserId == request.UserId &&
-                    x.IsActive);
 
+            var user = await _context.Users
+        .FirstOrDefaultAsync(x =>
+            x.UserId == request.UserId &&
+            x.StatusId == 1 &&
+            x.IsActive &&
+            x.Role == "Contractor");
             if (user == null)
                 throw new Exception("User not found.");
 
@@ -66,17 +68,21 @@ namespace ConstructionManagement.BLL.Services
         public async Task<List<object>> GetAllContractorsAsync()
         {
             var contractors = await _context.Contractors
-                .Where(x => x.IsActive && x.User.IsActive)
-                .Select(x => new
-                {
-                    x.ContractorId,
-                    x.UserId,
-                    x.User.FullName,
-                    x.User.Phone,
-                    x.User.Email,
-                    x.ContractorCompany
-                })
-                .ToListAsync();
+                     .Where(x =>
+           x.IsActive &&
+           x.User.IsActive &&
+           x.User.StatusId == 1 &&
+           x.User.Role == "Contractor")
+       .Select(x => new
+       {
+           x.ContractorId,
+           x.UserId,
+           x.User.FullName,
+           x.User.Phone,
+           x.User.Email,
+           x.ContractorCompany
+       })
+       .ToListAsync();
 
             return contractors.Cast<object>().ToList();
         }

@@ -13,5 +13,8 @@ namespace ConstructionManagement.BLL.DTOs
         public decimal RequestedQuantity { get; set; }
 
         public string Unit { get; set; } = string.Empty;
+        public decimal? ApprovedQuantity { get; set; }
+
+        public decimal? UnitRate { get; set; }
     }
 }
