@@ -1,0 +1,451 @@
+
+CREATE DATABASE ConstructionManagementDB;
+GO
+
+USE ConstructionManagementDB;
+GO
+-- 1. Users: Builder, Supervisor, Contractor, Admin
+CREATE TABLE Users (
+    UserId INT IDENTITY(1,1) PRIMARY KEY,
+    FullName NVARCHAR(150) NOT NULL,
+    Phone NVARCHAR(20) NOT NULL UNIQUE,
+    Email NVARCHAR(150) NULL,
+    PasswordHash NVARCHAR(500) NOT NULL,
+    Role NVARCHAR(30) NOT NULL
+        CHECK (Role IN ('Admin','Builder','Supervisor','Contractor')),
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+	    statusid BIT NOT NULL DEFAULT 1,-----------------------========new added
+		foreign key from status table
+);
+GO
+
+-- 2. Construction sites
+CREATE TABLE ConstructionSites (
+    SiteId INT IDENTITY(1,1) PRIMARY KEY,
+    BuilderId INT NOT NULL,
+    SiteName NVARCHAR(150) NOT NULL,
+    Address NVARCHAR(500) NULL,
+    Latitude DECIMAL(9,6) NULL,
+    Longitude DECIMAL(9,6) NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    FOREIGN KEY (BuilderId) REFERENCES Users(UserId)
+);
+GO
+
+-- 3. Site access for supervisors and other authorized users---------delete this one 
+CREATE TABLE SiteUserAccess (
+    SiteId INT NOT NULL,
+    UserId INT NOT NULL,
+    AssignedBy INT NOT NULL,
+    AssignedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    PRIMARY KEY (SiteId, UserId),
+    FOREIGN KEY (SiteId) REFERENCES ConstructionSites(SiteId),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    FOREIGN KEY (AssignedBy) REFERENCES Users(UserId)
+);
+GO
+
+-- 4. Contractor details
+CREATE TABLE Contractors (
+    ContractorId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL UNIQUE,
+    ContractorCompany NVARCHAR(200) NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId)
+);
+GO
+
+-- 5. Daily attendance and work submissions
+CREATE TABLE DailyWorkSubmissions (
+    SubmissionId BIGINT IDENTITY(1,1) PRIMARY KEY,
+    SiteId INT NOT NULL,
+    ContractorId INT NOT NULL,
+    WorkDate DATE NOT NULL,
+    AttendanceSelfiePath NVARCHAR(500) NOT NULL,
+    WorkPhotoPath NVARCHAR(500) NOT NULL,
+    DeclaredLabourCount INT NOT NULL
+        CHECK (DeclaredLabourCount > 0),
+    VerifiedLabourCount INT NULL
+        CHECK (VerifiedLabourCount IS NULL OR VerifiedLabourCount >= 0),
+    WorkDescription NVARCHAR(1000) NULL,
+    Latitude DECIMAL(9,6) NULL,------------------change datatype to string
+    Longitude DECIMAL(9,6) NULL,
+    SubmittedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    Status NVARCHAR(40) NOT NULL DEFAULT 'PendingSupervisor'
+        CHECK (Status IN (=========================================add new table for this 
+            'PendingSupervisor',
+            'PendingBuilder',
+            'Approved',
+            'Rejected'
+        )),
+    UNIQUE (SiteId, ContractorId, WorkDate),
+    FOREIGN KEY (SiteId) REFERENCES ConstructionSites(SiteId),
+    FOREIGN KEY (ContractorId) REFERENCES Contractors(ContractorId)
+);
+GO
+
+-- 6. Approval history
+CREATE TABLE WorkApprovals (
+    ApprovalId BIGINT IDENTITY(1,1) PRIMARY KEY,
+    SubmissionId BIGINT NOT NULL,
+    ApproverId INT NOT NULL,----------------ApprovalBy chagne the name to approvalby
+    ApprovalLevel INT NOT NULL
+        CHECK (ApprovalLevel IN (1,2)),
+    Decision NVARCHAR(20) NOT NULL
+        CHECK (Decision IN ('Approved','Rejected')),
+    Remarks NVARCHAR(1000) NULL,
+    DecisionAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    FOREIGN KEY (SubmissionId)
+        REFERENCES DailyWorkSubmissions(SubmissionId),
+    FOREIGN KEY (ApproverId) REFERENCES Users(UserId),
+    UNIQUE (SubmissionId, ApprovalLevel)
+);
+GO
+
+-- 7. Material demands
+CREATE TABLE MaterialDemands (
+    DemandId BIGINT IDENTITY(1,1) PRIMARY KEY,
+    SiteId INT NOT NULL,
+    RequestedBy INT NOT NULL,
+    DemandDate DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    RequiredDate DATE NULL,
+    Status NVARCHAR(30) NOT NULL DEFAULT 'Pending'   id -----------new table create and that id save in thhis table
+        CHECK (Status IN (
+            'Pending','Approved','Rejected',
+            'PartiallyDelivered','Completed'
+        )),
+    Remarks NVARCHAR(1000) NULL,
+    FOREIGN KEY (SiteId) REFERENCES ConstructionSites(SiteId),
+    FOREIGN KEY (RequestedBy) REFERENCES Users(UserId)
+);
+GO
+
+-- 8. Individual materials in a demand
+CREATE TABLE MaterialDemandItems (
+    DemandItemId BIGINT IDENTITY(1,1) PRIMARY KEY,
+    DemandId BIGINT NOT NULL,
+    MaterialName NVARCHAR(150) NOT NULL,
+    RequestedQuantity DECIMAL(12,2) NOT NULL
+        CHECK (RequestedQuantity > 0),
+    Unit NVARCHAR(30) NOT NULL,
+    ApprovedQuantity DECIMAL(12,2) NULL,
+    UnitRate DECIMAL(12,2) NULL,
+    FOREIGN KEY (DemandId) REFERENCES MaterialDemands(DemandId)
+);
+GO
+
+-- 9. Material delivery and challan records
+CREATE TABLE MaterialDeliveries (
+    DeliveryId BIGINT IDENTITY(1,1) PRIMARY KEY,
+    DemandItemId BIGINT NOT NULL,
+    ReceivedBy INT NOT NULL,
+    ReceivedQuantity DECIMAL(12,2) NOT NULL
+        CHECK (ReceivedQuantity > 0),
+    ChallanNumber NVARCHAR(100) NULL,
+    ChallanPhotoPath NVARCHAR(500) NOT NULL,
+    InvoicePhotoPath NVARCHAR(500) NULL,
+    InvoiceNumber NVARCHAR(100) NULL,
+    DeliveryDate DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    UnitRate DECIMAL(12,2) NULL,
+    TotalAmount AS (
+        CASE WHEN UnitRate IS NOT NULL
+        THEN ReceivedQuantity * UnitRate
+        ELSE NULL END
+    ) PERSISTED,
+    Remarks NVARCHAR(1000) NULL,
+    FOREIGN KEY (DemandItemId)
+        REFERENCES MaterialDemandItems(DemandItemId),
+    FOREIGN KEY (ReceivedBy) REFERENCES Users(UserId)
+);
+GO
+
+CREATE INDEX IX_DailyWork_SiteDate
+ON DailyWorkSubmissions(SiteId, WorkDate);
+
+CREATE INDEX IX_Demands_SiteStatus
+ON MaterialDemands(SiteId, Status);
+
+CREATE INDEX IX_Approvals_Submission
+ON WorkApprovals(SubmissionId, ApprovalLevel);
+GO
+
+
+
+
+INSERT INTO dbo.Users
+(
+    FullName,
+    Phone,
+    Email,
+    PasswordHash,
+    Role,
+    IsActive
+)
+VALUES
+(
+    'System Admin',
+    '9000000002',
+    'admin@example.com',
+    'PASTE_ACTUAL_GENERATED_HASH',
+    'Admin',
+    1
+);
+
+
+
+
+INSERT INTO dbo.Users
+(
+    FullName,
+    Phone,
+    Email,
+    PasswordHash,
+    Role,
+    IsActive
+)
+VALUES
+(
+    'System Admin',
+    '9000000002',
+    'admin@example.com',
+    'PASTE_ACTUAL_GENERATED_HASH',
+    'Admin',
+    1
+);
+
+
+select * from Users
+
+select * from ConstructionSites
+
+
+IF OBJECT_ID('dbo.Notifications', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Notifications
+    (
+        NotificationId BIGINT IDENTITY(1,1) PRIMARY KEY,
+
+        UserId INT NOT NULL,
+
+        Title NVARCHAR(200) NOT NULL,
+
+        Message NVARCHAR(1000) NOT NULL,
+
+        NotificationType NVARCHAR(50) NOT NULL,
+
+        ReferenceId BIGINT NULL,
+
+        ReferenceType NVARCHAR(50) NULL,
+
+        IsRead BIT NOT NULL DEFAULT 0,
+
+        CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+        ReadAt DATETIME2 NULL,
+
+        CONSTRAINT FK_Notifications_Users
+            FOREIGN KEY (UserId)
+            REFERENCES dbo.Users(UserId)
+    );
+
+    CREATE INDEX IX_Notifications_UserId_IsRead
+    ON dbo.Notifications(UserId, IsRead);
+END;
+GO
+
+
+
+
+-- 1. Menu master table
+IF OBJECT_ID('dbo.MenuItems', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.MenuItems
+    (
+        MenuId INT IDENTITY(1,1) PRIMARY KEY,
+        MenuName NVARCHAR(100) NOT NULL,
+        Icon NVARCHAR(100) NULL,
+        Route NVARCHAR(250) NULL,
+        ParentMenuId INT NULL,
+        SortOrder INT NOT NULL DEFAULT 0,
+        IsActive BIT NOT NULL DEFAULT 1,
+
+        CONSTRAINT FK_MenuItems_Parent
+            FOREIGN KEY (ParentMenuId)
+            REFERENCES dbo.MenuItems(MenuId)
+    );
+END;
+GO
+
+-- 2. Role-wise menu permissions
+IF OBJECT_ID('dbo.MenuRolePermissions', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.MenuRolePermissions
+    (
+        MenuId INT NOT NULL,
+        RoleName NVARCHAR(50) NOT NULL,
+        CanView BIT NOT NULL DEFAULT 0,
+        CanCreate BIT NOT NULL DEFAULT 0,
+        CanEdit BIT NOT NULL DEFAULT 0,
+        CanDelete BIT NOT NULL DEFAULT 0,
+
+        CONSTRAINT PK_MenuRolePermissions
+            PRIMARY KEY (MenuId, RoleName),
+
+        CONSTRAINT FK_MenuRolePermissions_MenuItems
+            FOREIGN KEY (MenuId)
+            REFERENCES dbo.MenuItems(MenuId)
+    );
+END;
+GO
+
+
+
+-- Parent menus
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Dashboard')
+    INSERT INTO MenuItems (MenuName, Icon, Route, SortOrder)
+    VALUES ('Dashboard', 'layout-dashboard', '/dashboard', 1);
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Site Management')
+    INSERT INTO MenuItems (MenuName, Icon, Route, SortOrder)
+    VALUES ('Site Management', 'building-2', NULL, 2);
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Work Management')
+    INSERT INTO MenuItems (MenuName, Icon, Route, SortOrder)
+    VALUES ('Work Management', 'clipboard-list', NULL, 3);
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Material Management')
+    INSERT INTO MenuItems (MenuName, Icon, Route, SortOrder)
+    VALUES ('Material Management', 'package', NULL, 4);
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Reports')
+    INSERT INTO MenuItems (MenuName, Icon, Route, SortOrder)
+    VALUES ('Reports', 'chart-bar', '/reports', 5);
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Notifications')
+    INSERT INTO MenuItems (MenuName, Icon, Route, SortOrder)
+    VALUES ('Notifications', 'bell', '/notifications', 6);
+
+-- Child menus
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Users')
+    INSERT INTO MenuItems (MenuName, Icon, Route, ParentMenuId, SortOrder)
+    SELECT 'Users', 'users', '/users', MenuId, 1
+    FROM MenuItems WHERE MenuName = 'Site Management';
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Construction Sites')
+    INSERT INTO MenuItems (MenuName, Icon, Route, ParentMenuId, SortOrder)
+    SELECT 'Construction Sites', 'building', '/sites', MenuId, 2
+    FROM MenuItems WHERE MenuName = 'Site Management';
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Contractors')
+    INSERT INTO MenuItems (MenuName, Icon, Route, ParentMenuId, SortOrder)
+    SELECT 'Contractors', 'hard-hat', '/contractors', MenuId, 3
+    FROM MenuItems WHERE MenuName = 'Site Management';
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Attendance')
+    INSERT INTO MenuItems (MenuName, Icon, Route, ParentMenuId, SortOrder)
+    SELECT 'Attendance', 'calendar-check', '/attendance', MenuId, 1
+    FROM MenuItems WHERE MenuName = 'Work Management';
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Work Approvals')
+    INSERT INTO MenuItems (MenuName, Icon, Route, ParentMenuId, SortOrder)
+    SELECT 'Work Approvals', 'clipboard-check', '/work-approvals', MenuId, 2
+    FROM MenuItems WHERE MenuName = 'Work Management';
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Material Demands')
+    INSERT INTO MenuItems (MenuName, Icon, Route, ParentMenuId, SortOrder)
+    SELECT 'Material Demands', 'package', '/material-demands', MenuId, 1
+    FROM MenuItems WHERE MenuName = 'Material Management';
+
+IF NOT EXISTS (SELECT 1 FROM MenuItems WHERE MenuName = 'Material Deliveries')
+    INSERT INTO MenuItems (MenuName, Icon, Route, ParentMenuId, SortOrder)
+    SELECT 'Material Deliveries', 'truck', '/material-deliveries', MenuId, 2
+    FROM MenuItems WHERE MenuName = 'Material Management';
+
+-- Role permissions
+-- Clear existing permissions for these seeded menu records
+DELETE FROM MenuRolePermissions
+WHERE MenuId IN (SELECT MenuId FROM MenuItems);
+
+DECLARE @Permissions TABLE
+(
+    MenuName NVARCHAR(100),
+    RoleName NVARCHAR(50),
+    CanView BIT,
+    CanCreate BIT,
+    CanEdit BIT,
+    CanDelete BIT
+);
+
+-- Admin
+INSERT INTO @Permissions VALUES
+('Dashboard','Admin',1,0,0,0),
+('Site Management','Admin',1,0,0,0),
+('Users','Admin',1,1,1,1),
+('Construction Sites','Admin',1,1,1,1),
+('Contractors','Admin',1,1,1,1),
+('Work Management','Admin',1,0,0,0),
+('Attendance','Admin',1,0,0,0),
+('Work Approvals','Admin',1,0,0,0),
+('Material Management','Admin',1,0,0,0),
+('Material Demands','Admin',1,0,0,0),
+('Material Deliveries','Admin',1,0,0,0),
+('Reports','Admin',1,0,0,0),
+('Notifications','Admin',1,0,0,0);
+
+-- Builder
+INSERT INTO @Permissions VALUES
+('Dashboard','Builder',1,0,0,0),
+('Site Management','Builder',1,0,0,0),
+('Construction Sites','Builder',1,1,1,0),
+('Contractors','Builder',1,1,1,0),
+('Work Management','Builder',1,0,0,0),
+('Attendance','Builder',1,0,0,0),
+('Work Approvals','Builder',1,0,1,0),
+('Material Management','Builder',1,0,0,0),
+('Material Demands','Builder',1,0,1,0),
+('Material Deliveries','Builder',1,0,0,0),
+('Reports','Builder',1,0,0,0),
+('Notifications','Builder',1,0,0,0);
+
+-- Supervisor
+INSERT INTO @Permissions VALUES
+('Dashboard','Supervisor',1,0,0,0),
+('Work Management','Supervisor',1,0,0,0),
+('Attendance','Supervisor',1,1,1,0),
+('Material Management','Supervisor',1,0,0,0),
+('Material Demands','Supervisor',1,1,1,0),
+('Material Deliveries','Supervisor',1,1,0,0),
+('Notifications','Supervisor',1,0,0,0);
+
+-- Contractor
+INSERT INTO @Permissions VALUES
+('Dashboard','Contractor',1,0,0,0),
+('Work Management','Contractor',1,0,0,0),
+('Attendance','Contractor',1,1,0,0),
+('Notifications','Contractor',1,0,0,0);
+
+INSERT INTO MenuRolePermissions
+(
+    MenuId, RoleName, CanView,
+    CanCreate, CanEdit, CanDelete
+)
+SELECT
+    M.MenuId,
+    P.RoleName,
+    P.CanView,
+    P.CanCreate,
+    P.CanEdit,
+    P.CanDelete
+FROM @Permissions P
+INNER JOIN MenuItems M
+    ON M.MenuName = P.MenuName;
+GO
+
+
+table create userstatus
+--active ---1
+--inactive ---2
+--deleted --3
+--ApprovalPending ---4
